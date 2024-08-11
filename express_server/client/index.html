@@ -1,0 +1,42 @@
+<canvas id="ctx" width="500" style="border: 1px solid #000000;"></canvas>
+
+
+Client screen
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    var ctx = document.getElementById("ctx").getContext("2d");
+    ctx.font = '30px Arial';
+
+    const socket = io();
+
+    socket.on('newPosition', function (data) {
+        ctx.clearRect(0, 0, 500, 500);
+        ctx.fillText('P', data.x, data.y);
+    });
+
+    //var random = Math.random();
+
+    var f_subir = function () {
+        socket.emit('subir', {
+            y: -1,
+        });
+    }
+    var f_bajar = function () {
+        socket.emit('bajar', {
+            y: 1,
+        });
+    }
+
+    f_subir();
+    f_bajar();
+
+
+</script>
+
+<button onclick="f_subir()">
+    subir
+</button>
+<button onclick="f_bajar()">
+    bajar
+</button>
