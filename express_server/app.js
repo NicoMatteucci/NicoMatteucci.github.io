@@ -169,6 +169,7 @@ io.sockets.on('connection', function (socket) {
     socket.y = 0;
     socket.number = "" + Math.floor(10 * Math.random());
     SOCKET_LIST[socket.id] = socket;
+    socket.emit('boardInit');
 
     Player.onConnect(socket);
 
