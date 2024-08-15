@@ -12,10 +12,6 @@ app.get("/", (req, res) => {
 
 app.use('/client', express.static(__dirname + '/client'));
 
-//app.listen(3000, () => {
-//    console.log("server running ok, port", 3000);
-//})
-
 serv.listen(2000);
 console.log("server started.");
 
@@ -36,6 +32,9 @@ var Entity = function () {
         self.x += self.spdX;
         self.y += self.spdY;
     }
+    self.getDistance = function (pt) {
+        return Math.sqrt(Math.pow(self.x - pt.x, 2) + Math.pow(self.y - pt.y, 2));
+    }
     return self;
 }
 
@@ -48,12 +47,24 @@ var Player = function (id) {
     self.pressingLeft = false;
     self.pressingUp = false;
     self.pressingDown = false;
+    self.pressingAttack = false;
+    self.mouseAngle = 0;
     self.maxSpd = 10;
 
     var super_update = self.update;
     self.update = function () {
         self.updateSpd();
         super_update();
+        //bullet for each player
+        if (self.pressingAttack) {
+            self.shootBullet(self.mouseAngle);
+        }
+    }
+
+    self.shootBullet = function (angle) {
+        var b = Bullet(self.id, angle);
+        b.x = self.x;
+        b.y = self.y;
     }
 
     self.updateSpd = function () {
@@ -83,6 +94,8 @@ Player.onConnect = function (socket) {
         else if (data.inputId === 'left') player.pressingLeft = data.state;
         else if (data.inputId === 'up') player.pressingUp = data.state;
         else if (data.inputId === 'down') player.pressingDown = data.state;
+        else if (data.inputId === 'attack') player.pressingAttack = data.state;
+        else if (data.inputId === 'mouseAngle') player.mouseAngle = data.state;
     });
 }
 Player.onDisconnect = function (socket) {
@@ -102,41 +115,52 @@ Player.update = function () {
     return pack;
 }
 
-var Bullet = function (angle) {
+var Bullet = function (parent, angle) {
     var self = Entity();
-	self.id = Math.random();
-	self.spdX = Math.cos(angle/180*Math.PI) * 10;
-	self.spdY = Math.sin(angle/180*Math.PI) * 10;
- 
-	self.timer = 0;
-	self.toRemove = false;
-	var super_update = self.update;
-	self.update = function(){
-		if(self.timer++ > 100)
-			self.toRemove = true;
-		super_update();
-	}
-	Bullet.list[self.id] = self;
-	return self;
+    self.id = Math.random();
+    self.spdX = Math.cos(angle / 180 * Math.PI) * 10;
+    self.spdY = Math.sin(angle / 180 * Math.PI) * 10;
+    self.parent = parent;
+    self.timer = 0;
+    self.toRemove = false;
+    var super_update = self.update;
+    self.update = function () {
+        if (self.timer++ > 100)
+            self.toRemove = true;
+        super_update();
+
+        for (var i in Player.list) {
+            var p = Player.list[i]
+            if (self.getDistance(p) < 32 && self.parent !== p.id) {
+                //handle collision
+                //ex: hp--;
+                self.toRemove = true;
+            }
+        }
+    }
+    Bullet.list[self.id] = self;
+    return self;
 }
 Bullet.list = {};
 
 Bullet.update = function () {
-    if (Math.random() < 0.1) {
-        Bullet(Math.random() * 360);
-    }
 
     var pack = [];
     for (var i in Bullet.list) {
         var bullet = Bullet.list[i];
         bullet.update();
-        pack.push({
-            x: bullet.x,
-            y: bullet.y,
-        })
+        if (bullet.toRemove) delete Bullet.list[i];
+        else {
+            pack.push({
+                x: bullet.x,
+                y: bullet.y,
+            });
+        }
     }
     return pack;
 }
+
+var DEBUG = true;
 
 var io = require('socket.io')(serv, {});
 io.sockets.on('connection', function (socket) {
@@ -154,11 +178,26 @@ io.sockets.on('connection', function (socket) {
         delete Player.list[socket.id];
     });
 
+    socket.on('sendMsgToServer', function (data) {
+        var playerName = ("" + socket.id).slice(2, 7);
+        for (var i in SOCKET_LIST) {
+            SOCKET_LIST[i].emit('addToChat', playerName + ': ' + data);
+        }
+    });
+    //cannot be on public server
+    socket.on('evalServer', function (data) {
+        if (!DEBUG) return;
+        else {
+            var res = eval(data);
+            socket.emit('evalAnswer', res);
+        }
+    });
+
     socket.on('subir', function (data) {
         console.log('subiendo');
         socket.y -= data.y;
-
     });
+
     socket.on('bajar', function (data) {
         console.log('bajando');
         socket.y += data.y;

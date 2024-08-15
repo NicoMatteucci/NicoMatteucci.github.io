@@ -1,24 +1,77 @@
-<canvas id="ctx" width="500" height="500" style="border: 1px solid #000000;"></canvas>
+<canvas id="ctx" width="1000" height="500" style="border: 1px solid #000000;"></canvas>
 
-
-Client screen
+<div id="chat-text" style="width: 1000px; height: 100px; overflow-y: scroll;">
+    <div>This is the chatroom!</div>
+</div>
+<form id="chat-form">
+    <input id="chat-input" type="text" style="width:1000px"></input>
+</form>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
+    const width = 1000;
+    const height = 500;
+    var chatText = document.getElementById('chat-text');
+    var chatInput = document.getElementById('chat-input');
+    var chatForm = document.getElementById('chat-form');
     var ctx = document.getElementById("ctx").getContext("2d");
     ctx.font = '30px Arial';
+
+    var img = {};
+    img.car = new Image();
+    img.car.src = "client/img/car.png";
+    img.ship = new Image();
+    img.ship.src = "client/img/battle_ship.png";
+    img.dog = new Image();
+    img.dog.src = "client/img/dog.png";
+    img.hat = new Image();
+    img.hat.src = "client/img/hat.png";
 
     const socket = io();
 
     socket.on('newPosition', function (data) {
-        ctx.clearRect(0, 0, 500, 500);
+        ctx.clearRect(0, 0, width, height);
         for (var i = 0; i < data.player.length; i++) {
-            ctx.fillText(data.player[i].number, data.player[i].x, data.player[i].y);
+            if (data.player[i].number === "0") {
+                //ctx.drawImage(img.car, data.player[i].x, data.player[i].y);
+                ctx.drawImage(img.car, data.player[i].x, data.player[i].y, 100, 100);
+            }
+            else if (data.player[i].number === "1") {
+                //ctx.drawImage(img.ship, data.player[i].x, data.player[i].y);
+                ctx.drawImage(img.ship, data.player[i].x, data.player[i].y, 100, 100);
+            }
+            else if (data.player[i].number === "2") {
+                //ctx.drawImage(img.dog, data.player[i].x, data.player[i].y);
+                ctx.drawImage(img.dog, data.player[i].x, data.player[i].y, 100, 100);
+            }
+            else if (data.player[i].number === "3") {
+                //ctx.drawImage(img.hat, data.player[i].x, data.player[i].y);
+                ctx.drawImage(img.hat, data.player[i].x, data.player[i].y, 100, 100);
+            }
+            else {
+                ctx.fillText(data.player[i].number, data.player[i].x, data.player[i].y);
+            }
         }
         for (var i = 0; i < data.bullet.length; i++) {
             ctx.fillRect(data.bullet[i].x - 5, data.bullet[i].y - 5, 10, 10);
         }
     });
+
+    socket.on('addToChat', function (data) {
+        chatText.innerHTML += '<div>' + data + '</div>';
+    });
+    socket.on('evalAnswer', function (data) {
+        console.log(data);
+    });
+
+    chatForm.onsubmit = function (e) {
+        e.preventDefault();
+        if (chatInput.value[0] === '/')
+            socket.emit('evalServer', chatInput.value.slice(1));
+        else
+            socket.emit('sendMsgToServer', chatInput.value);
+        chatInput.value = '';
+    }
 
     document.onkeydown = function (event) {
         if (event.keyCode === 68)//d
@@ -39,6 +92,19 @@ Client screen
             socket.emit('keyPress', { inputId: 'up', state: false });
         else if (event.keyCode === 83)
             socket.emit('keyPress', { inputId: 'down', state: false });
+    }
+
+    document.onmousedown = function (event) {
+        socket.emit('keyPress', { inputId: 'attack', state: true });
+    }
+    document.onmouseup = function (event) {
+        socket.emit('keyPress', { inputId: 'attack', state: false });
+    }
+    document.onmousemove = function (event) {
+        var x = -250 + event.clientX - 8;
+        var y = -250 + event.clientY - 8;
+        var angle = Math.atan2(y, x) / Math.PI * 180;
+        socket.emit('keyPress', { inputId: 'mouseAngle', state: angle });
     }
 
     //var random = Math.random();
