@@ -1,4 +1,4 @@
-<canvas id="ctx" width="1000" height="1000" style="border: 1px solid #000000;">
+<canvas id="ctx" width="500" height="500" style="border: 1px solid #000000;">
 
 </canvas>
 
@@ -17,7 +17,7 @@
     var chatInput = document.getElementById('chat-input');
     var chatForm = document.getElementById('chat-form');
     var ctx = document.getElementById("ctx").getContext("2d");
-    ctx.font = '30px Arial';
+    ctx.font = '40px Arial';
 
     var img = {};
     img.car = new Image();
@@ -51,7 +51,7 @@
     const socket = io();
     socket.on('newPosition', function (data) {
         ctx.clearRect(0, 0, width, height);
-        ctx.drawImage(img.board, 0, 0);
+        ctx.drawImage(img.board, 0, 0, 500, 500);
         for (var i = 0; i < data.player.length; i++) {
             if (data.player[i].number === "0") {
                 //ctx.drawImage(img.car, data.player[i].x, data.player[i].y);
