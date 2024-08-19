@@ -38,11 +38,15 @@ var Entity = function () {
     return self;
 }
 
+var max_players = 6;
+
 //PLAYER SELF INFO
 var Player = function (id) {
     var self = Entity();
     self.id = id;
-    self.number = "" + Math.floor(10 * Math.random());
+    //uses this number to select the image on client side
+    self.number = "" + Math.floor(max_players * Math.random());
+    //console.log("your self.number: " + self.number);
     self.pressingRight = false;
     self.pressingLeft = false;
     self.pressingUp = false;
@@ -144,7 +148,6 @@ var Bullet = function (parent, angle) {
 Bullet.list = {};
 
 Bullet.update = function () {
-
     var pack = [];
     for (var i in Bullet.list) {
         var bullet = Bullet.list[i];
@@ -167,8 +170,10 @@ io.sockets.on('connection', function (socket) {
     socket.id = Math.random();
     socket.x = 0;
     socket.y = 0;
-    socket.number = "" + Math.floor(10 * Math.random());
+    //using max_player may implied if number repited players can step on each other losing their socket
+    socket.number = "" + Math.floor(max_players * Math.random());
     SOCKET_LIST[socket.id] = socket;
+    //console.log("your socket.number: " + socket.number);
 
     Player.onConnect(socket);
 
@@ -192,15 +197,11 @@ io.sockets.on('connection', function (socket) {
             socket.emit('evalAnswer', res);
         }
     });
-
-    socket.on('subir', function (data) {
-        console.log('subiendo');
-        socket.y -= data.y;
-    });
-
-    socket.on('bajar', function (data) {
-        console.log('bajando');
-        socket.y += data.y;
+    
+    socket.on('roll', function (data) {
+        var res = Math.floor(data.faces * Math.random()+1);
+        console.log("rolled: " + res);
+        socket.emit('rolled', res);
     });
 
 });

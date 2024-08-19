@@ -2,7 +2,7 @@
 
 </canvas>
 
-<div id="chat-text" style="width: 1000px; height: 100px; overflow-y: scroll;">
+<div id="chat-text" style="width: 1000px; height: 500px; overflow-y: scroll;">
     <div>This is the chatroom!</div>
 </div>
 <form id="chat-form">
@@ -28,8 +28,25 @@
     img.dog.src = "client/img/dog.png";
     img.hat = new Image();
     img.hat.src = "client/img/hat.png";
+    img.boot = new Image();
+    img.boot.src = "client/img/boot.png";
+    img.iron = new Image();
+    img.iron.src = "client/img/iron.png";
     img.board = new Image();
     img.board.src = "client/img/tablero.png";
+    img.dice_1 = new Image();
+    img.dice_1.src = "client/img/dice_1.png";
+    img.dice_2 = new Image();
+    img.dice_2.src = "client/img/dice_2.png";
+    img.dice_3 = new Image();
+    img.dice_3.src = "client/img/dice_3.png";
+    img.dice_4 = new Image();
+    img.dice_4.src = "client/img/dice_4.png";
+    img.dice_5 = new Image();
+    img.dice_5.src = "client/img/dice_5.png";
+    img.dice_6 = new Image();
+    img.dice_6.src = "client/img/dice_6.png";
+
 
     const socket = io();
     socket.on('newPosition', function (data) {
@@ -52,6 +69,14 @@
                 //ctx.drawImage(img.hat, data.player[i].x, data.player[i].y);
                 ctx.drawImage(img.hat, data.player[i].x, data.player[i].y, 50, 50);
             }
+            else if (data.player[i].number === "4") {
+                //ctx.drawImage(img.hat, data.player[i].x, data.player[i].y);
+                ctx.drawImage(img.boot, data.player[i].x, data.player[i].y, 50, 50);
+            }
+            else if (data.player[i].number === "5") {
+                //ctx.drawImage(img.hat, data.player[i].x, data.player[i].y);
+                ctx.drawImage(img.iron, data.player[i].x, data.player[i].y, 50, 50);
+            }
             else {
                 ctx.fillText(data.player[i].number, data.player[i].x, data.player[i].y);
             }
@@ -66,6 +91,22 @@
     });
     socket.on('evalAnswer', function (data) {
         console.log(data);
+    });
+    socket.on('rolled', function (data) {
+        chatText.innerHTML += '<div>' + "dice: " + data + '</div>';
+        if (data == "1")
+            chatText.innerHTML += '<img src="client/img/dice_1.png" alt="dice 1" style="width:150px;height:150px;">';
+        if (data == "2")
+            chatText.innerHTML += '<img src="client/img/dice_2.png" alt="dice 1" style="width:150px;height:150px;">';
+        if (data == "3")
+            chatText.innerHTML += '<img src="client/img/dice_3.png" alt="dice 1" style="width:150px;height:150px;">';
+        if (data == "4")
+            chatText.innerHTML += '<img src="client/img/dice_4.png" alt="dice 1" style="width:150px;height:150px;">';
+        if (data == "5")
+            chatText.innerHTML += '<img src="client/img/dice_5.png" alt="dice 1" style="width:150px;height:150px;">';
+        if (data == "6")
+            chatText.innerHTML += '<img src="client/img/dice_6.png" alt="dice 1" style="width:150px;height:150px;">';
+        //<img src="client/dice_1.png" alt="dice 1" style="width:360px;height:356px;">
     });
 
     chatForm.onsubmit = function (e) {
@@ -113,23 +154,14 @@
 
     //var random = Math.random();
 
-    var f_subir = function () {
-        socket.emit('subir', {
-            y: 10,
+    var f_roll = function () {
+        socket.emit('roll', {
+            faces: 6,
         });
     }
-    var f_bajar = function () {
-        socket.emit('bajar', {
-            y: 10,
-        });
-    }
-    f_subir();
-    f_bajar();
+    f_roll();
 </script>
 
-<button onclick="f_subir()">
-    subir
-</button>
-<button onclick="f_bajar()">
-    bajar
+<button onclick="f_roll()">
+    ROLL DICE
 </button>
