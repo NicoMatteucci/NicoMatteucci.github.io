@@ -1,16 +1,115 @@
-<canvas id="ctx" width="500" height="500" style="border: 1px solid #000000;">
+<html lang="en">
 
-</canvas>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+</head>
 
-<div id="chat-text" style="width: 1000px; height: 500px; overflow-y: scroll;">
-    <div>This is the chatroom!</div>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="">MONOPOLIO</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Link</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        MY ACTIONS
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="#">Roll dice</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="#">Buy</a>
+                        <a class="dropdown-item" href="#">Sell</a>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+                </li>
+            </ul>
+            <form class="form-inline my-2 my-lg-0">
+                <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+            </form>
+        </div>
+    </nav>
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+        integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js"
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>
+
+<div id="signDiv">
+    Username: <input id="signDiv-username" type="text"></input><br>
+    Password: <input id="signDiv-password" type="password"></input>
+    <button id="signDiv-signIn">Sign In</button>
+    <button id="signDiv-signUp">Sign Up</button>
 </div>
-<form id="chat-form">
-    <input id="chat-input" type="text" style="width:1000px"></input>
-</form>
+
+<div id="gameDiv" style="display:none;">
+    <canvas id="ctx" width="500" height="500" style="border:1px solid #000000;"></canvas>
+
+    <div id="chat-text" style="width:500px;height:300px;overflow-y:scroll">
+        <div>Hello! Welcome to the chatroom</div>
+    </div>
+
+    <form id="chat-form">
+        <input id="chat-input" type="text" style="width:500px"></input>
+    </form>
+</div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
+    //sign part
+    var socket = io();
+    var signDiv = document.getElementById('signDiv');
+    var signDivUsername = document.getElementById('signDiv-username');
+    var signDivSignIn = document.getElementById('signDiv-signIn');
+    var signDivSignUp = document.getElementById('signDiv-signUp');
+    var signDivPassword = document.getElementById('signDiv-password');
+    var current_pos = 0;
+
+    signDivSignIn.onclick = function () {
+        socket.emit('signIn', { username: signDivUsername.value, password: signDivPassword.value });
+    }
+    signDivSignUp.onclick = function () {
+        socket.emit('signUp', { username: signDivUsername.value, password: signDivPassword.value });
+    }
+    socket.on('signInResponse', function (data) {
+        if (data.success) {
+            signDiv.style.display = 'none';
+            gameDiv.style.display = 'inline-block';
+        } else
+            alert("Sign in unsuccessul.");
+    });
+    socket.on('signUpResponse', function (data) {
+        if (data.success) {
+            alert("Sign up successul.");
+        } else
+            alert("Sign up unsuccessul.");//DO NOT USE ON FINAL VERSION, USE OTHER DIV
+    });
+
+    //game part
     const width = 1000;
     const height = 1000;
     var chatText = document.getElementById('chat-text');
@@ -47,8 +146,6 @@
     img.dice_6 = new Image();
     img.dice_6.src = "client/img/dice_6.png";
 
-
-    const socket = io();
     socket.on('newPosition', function (data) {
         ctx.clearRect(0, 0, width, height);
         ctx.drawImage(img.board, 0, 0, 500, 500);
@@ -93,7 +190,7 @@
         console.log(data);
     });
     socket.on('rolled', function (data) {
-        chatText.innerHTML += '<div>' + "dice: " + data + '</div>';
+        chatText.innerHTML = '<div>' + "dice: " + data + '</div>';
         if (data == "1")
             chatText.innerHTML += '<img src="client/img/dice_1.png" alt="dice 1" style="width:150px;height:150px;">';
         if (data == "2")
@@ -157,9 +254,10 @@
     var f_roll = function () {
         socket.emit('roll', {
             faces: 6,
+            pos: current_pos,
         });
     }
-    f_roll();
+    //f_roll();
 </script>
 
 <button onclick="f_roll()">

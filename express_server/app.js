@@ -17,6 +17,32 @@ console.log("server started.");
 
 var SOCKET_LIST = {};
 
+var POSITION_MOVE = [
+    {
+        x: 0,
+        y: 0,
+    }
+];
+
+var setPositions = function () {
+    var pos_1 = { x: -10, y: 0 };//x
+    var pos_2 = { x: 0, y: -10 };//y
+    var pos_3 = { x: 10, y: 0 };//x
+    var pos_4 = { x: 0, y: 10 };//y
+    for (var i in POSITION_MOVE) {
+        if (i < 10)
+            POSITION_MOVE[i] = pos_1;
+        else if (i < 20)
+            POSITION_MOVE[i] = pos_2;
+        else if (i < 30)
+            POSITION_MOVE[i] = pos_3;
+        else if (i < 40)
+            POSITION_MOVE[i] = pos_4;
+    }
+    console.log("actualizo los delta en tablero");
+};
+setPositions();
+
 var Entity = function () {
     var self = {
         x: 250,
@@ -24,13 +50,19 @@ var Entity = function () {
         spdX: 0,
         spdY: 0,
         id: "",
+        pos: 0,
     }
     self.update = function () {
         self.updatePosition();
     }
     self.updatePosition = function () {
-        self.x += self.spdX;
-        self.y += self.spdY;
+        if (DEBUG) {
+            self.x += self.spdX;
+            self.y += self.spdY;
+        } else {
+            self.x += POSITION_MOVE[self.pos].x;
+            self.y += POSITION_MOVE[self.pos].y;
+        }
     }
     self.getDistance = function (pt) {
         return Math.sqrt(Math.pow(self.x - pt.x, 2) + Math.pow(self.y - pt.y, 2));
@@ -114,6 +146,7 @@ Player.update = function () {
             x: player.x,
             y: player.y,
             number: player.number,
+            pos: player.pos,
         })
     }
     return pack;
@@ -163,7 +196,32 @@ Bullet.update = function () {
     return pack;
 }
 
-var DEBUG = true;
+var DEBUG = false;
+
+var USERS = {
+    //username:password
+    "fede": "fede",
+    "juli": "juli",
+    "marian": "marian",
+    "nico": "nico",
+}
+
+var isValidPassword = function (data, cb) {
+    setTimeout(function () {
+        cb(USERS[data.username] === data.password);
+    }, 10);
+}
+var isUsernameTaken = function (data, cb) {
+    setTimeout(function () {
+        cb(USERS[data.username]);
+    }, 10);
+}
+var addUser = function (data, cb) {
+    setTimeout(function () {
+        USERS[data.username] = data.password;
+        cb();
+    }, 10);
+}
 
 var io = require('socket.io')(serv, {});
 io.sockets.on('connection', function (socket) {
@@ -175,7 +233,30 @@ io.sockets.on('connection', function (socket) {
     SOCKET_LIST[socket.id] = socket;
     //console.log("your socket.number: " + socket.number);
 
-    Player.onConnect(socket);
+
+    socket.on('signIn', function (data) {
+        isValidPassword(data, function (res) {
+            if (res) {
+                //creates a player when connected and update its position
+                Player.onConnect(socket);
+                socket.emit('signInResponse', { success: true });
+            } else {
+                socket.emit('signInResponse', { success: false });
+            }
+        });
+    });
+    socket.on('signUp', function (data) {
+        isUsernameTaken(data, function (res) {
+            if (res) {
+                socket.emit('signUpResponse', { success: false });
+            } else {
+                addUser(data, function () {
+                    socket.emit('signUpResponse', { success: true });
+                });
+            }
+        });
+    });
+
 
     socket.on('disconnect', function () {
         delete SOCKET_LIST[socket.id];
@@ -197,11 +278,15 @@ io.sockets.on('connection', function (socket) {
             socket.emit('evalAnswer', res);
         }
     });
-    
+
     socket.on('roll', function (data) {
-        var res = Math.floor(data.faces * Math.random()+1);
-        console.log("rolled: " + res);
-        socket.emit('rolled', res);
+        var res = {
+            dice: Math.floor(data.faces * Math.random() + 1),
+        };
+        Player.pos = data.pos;
+        for (var i in SOCKET_LIST) {
+            SOCKET_LIST[i].emit('rolled', res);
+        }
     });
 
 });
