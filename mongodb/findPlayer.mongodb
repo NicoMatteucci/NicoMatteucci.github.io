@@ -1,0 +1,4 @@
+// Connecting to database
+use('game_db');
+
+db.progress.find({});

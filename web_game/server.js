@@ -1,6 +1,16 @@
-const express = require("express");
-const app = express();
-const serv = require('http').Server(app);
+var mongodb = require("mongodb");
+var db = mongodb('localhosht:27017/game_db',
+    //collections needed
+    ['account', 'progress']
+);
+
+//queries
+
+
+
+var express = require('express');
+var app = express();
+var serv = require('http').Server(app);
 const path = require("path");
 const { disconnect } = require("process");
 
