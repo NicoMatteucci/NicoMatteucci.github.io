@@ -1,0 +1,10 @@
+// Connecting to database
+use('game_db');
+
+db.account.update(
+);
+
+db.progress.update(
+    { username: "nico" },
+    { $set: { pos: 1 } }
+);

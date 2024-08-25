@@ -1,0 +1,38 @@
+// Connecting to database
+use('game_db');
+
+// collections
+db.createCollection("account");
+db.createCollection("progress");
+
+// players info
+db.account.insert({
+    username: "nico",
+    password: "0000",
+});
+db.account.insert({
+    username: "fede",
+    password: "1234",
+});
+
+// progress of players
+db.progress.insert({
+    username: "nico",
+    pos: 0,
+    x: 0,
+    y: 0,
+    owned: {
+        cards: ["casa_tucuman", "aconcagua"],
+        houses: [1, 2]
+    }
+});
+db.progress.insert({
+    username: "fede",
+    pos: 0,
+    x: 0,
+    y: 0,
+    owned: {
+        cards: ["obelisco", "caminito"],
+        houses: [4, 3]
+    }
+});
