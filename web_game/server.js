@@ -4,6 +4,7 @@ var db = mongodb('localhosht:27017/game_db',
     ['account', 'progress']
 );
 
+
 //queries
 
 
