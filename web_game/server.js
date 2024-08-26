@@ -1,19 +1,11 @@
-var mongodb = require("mongodb");
-var db = mongodb('localhosht:27017/game_db',
-    //collections needed
-    ['account', 'progress']
-);
-
-
-//queries
-
-
+//const { connectToDB, getDB } = require('./server_db');
 
 var express = require('express');
 var app = express();
 var serv = require('http').Server(app);
 const path = require("path");
 const { disconnect } = require("process");
+const serverPort = 2000;
 
 
 app.get("/", (req, res) => {
@@ -23,9 +15,17 @@ app.get("/", (req, res) => {
 
 app.use('/client', express.static(__dirname + '/client'));
 
-serv.listen(2000);
-console.log("server started.");
+//db connection
+let db
 
+//connectToDB((err) => {
+//    if (!err) {
+//    }
+//    db = getDB()
+//})
+
+serv.listen(serverPort);
+console.log("server started on port " + serverPort);
 var SOCKET_LIST = {};
 
 var POSITION_MOVE = [
@@ -52,7 +52,7 @@ var setPositions = function () {
     }
     console.log("actualizo los delta en tablero");
 };
-setPositions();
+//setPositions();
 
 var Entity = function () {
     var self = {
@@ -207,7 +207,7 @@ Bullet.update = function () {
     return pack;
 }
 
-var DEBUG = false;
+var DEBUG = true;
 
 var USERS = {
     //username:password
