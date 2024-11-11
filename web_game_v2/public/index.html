@@ -1,0 +1,36 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Juego de Tablero</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Contenedor del tablero -->
+    <div id="board-container">
+        <img id="board" src="images/board.png" alt="Tablero">
+    </div>
+
+    <!-- Contenedor del dado y botón para lanzarlo -->
+    <div id="dice-container">
+        <button id="roll-dice">Lanzar Dado</button>
+        <img id="dice-image" src="" alt="Dado" style="display: none;"> <!-- Una sola imagen de dado -->
+        <div id="dice-result">Resultado:</div> <!-- Para mostrar el número del dado -->
+    </div>
+
+
+
+    <!-- Contenedor de depuración -->
+    <div id="debug-container">
+        <p id="debug-message">Depuración: Aquí aparecerán los mensajes</p>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="game.js"></script>
+</body>
+
+</html>
